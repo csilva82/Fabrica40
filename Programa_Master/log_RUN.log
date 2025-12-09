@@ -1,0 +1,20 @@
+Conexão bem-sucedida!
+Start Pedido: False
+Pause Pedido: False
+Atualizado Registros Anteriores.
+Aterior: 0
+VerificaInicio36: 0
+Produzido: 0
+Quantidade do Pedido: 9
+Valor:0
+[0;34mInício do programa:[0m
+10:50:49
+{"Main": {"NivelBateriaAMR": "64", "PosicaoAMR": 13, "PassoCR": "0", "AMR_Abastecido": false, "St_Producao": [false, false, false, false, false, false], "Inspecao": ["10", "False", "7", "False"], "StatusDeMaquina": ["0", "0", "False", "False"], "PassoMaquinas": ["0", "0"], "Kanban": ["False", "False", "False"], "ProgramaEmExecucaoCNC": [0, 0], "Reposicao": [false, false, false, false, false], "ContagemPedidoPecas": ["0", "9", "0", "0", "0", "0", "0", "0"], "Timestamp": "10:50:49"}}
+Aguardando_Mov_CR10
+Finalizado_Mov_CR10
+Deslocando pos: 5
+Movimentação Finalizada pos: 5
+Tentando iniciar movimento CR 50
+Movimento iniciado, aguardando finalizar...
+Sinal recebido: 15
+Finalizando com segurança.

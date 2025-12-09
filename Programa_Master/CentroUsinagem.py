@@ -1,0 +1,157 @@
+from pyModbusTCP.client import ModbusClient
+import time
+CentroUsinagem_client = ModbusClient(host="192.168.192.111", port=502, unit_id=1, auto_open=True) #IP do Centro de Usinagem
+Main_clientCU = ModbusClient(host="127.0.0.1", port=5050, unit_id=1, auto_open=True)  
+
+
+def iniciar_CentroUsinagem():
+     CentroUsinagem_client.write_single_coil(0,1)  #SELEÇÃO DO RESET
+     time.sleep(1)
+     CentroUsinagem_client.write_single_coil(0,0)  #SELEÇÃO DO RESET
+     time.sleep(1)
+
+
+def CENTROUSINAGEMCNC_SelecionarPrograma(valor):
+     Main_clientCU.write_single_register(114,valor)   #Programa atual sendo executado Centro de Usinagem
+     try: 
+      CentroUsinagem_client = ModbusClient(host="192.168.192.111", port=502, unit_id=1, auto_open=True) #IP do Centro de Usinagem
+      time.sleep(0.1)
+     except:
+       print("erro modbus Centro selecao do programa")
+     
+     Main_clientCU.write_single_register(114,valor)   #Programa atual sendo executado Centro de Usinagem
+     CentroUsinagem_client.write_single_coil(9,False)  #SELEÇÃO DO PROGRAMA 1
+     time.sleep(0.1)
+     CentroUsinagem_client.write_single_coil(10,False) #SELEÇÃO DO PROGRAMA 2
+     time.sleep(0.1)
+     CentroUsinagem_client.write_single_coil(11,False) #SELEÇÃO DO PROGRAMA 3
+     time.sleep(0.1)
+
+     if valor==1:
+        CentroUsinagem_client.write_single_coil(9,True) #SELEÇÃO DO PROGRAMA 1
+        time.sleep(0.5)
+        print("Programa CENTRO Usinagem Selecionado1: " + str (valor))
+     if valor==2:
+        CentroUsinagem_client.write_single_coil(10,True) #SELEÇÃO DO PROGRAMA 2
+        time.sleep(0.2)
+        print("Programa CENTRO Usinagem Selecionado2: " + str (valor))
+     if valor==3:
+        CentroUsinagem_client.write_single_coil(11,True) #SELEÇÃO DO PROGRAMA 3
+        time.sleep(0.2)
+        print("Programa CENTRO Usinagem Selecionado3: " + str (valor))
+
+     time.sleep(2)
+     Programa = [9,10,11]
+     
+     while CentroUsinagem_client.read_coils(Programa[valor-1], 1)[0] == False:
+         time.sleep(0.2)
+         print("Aguardando Set de Programa" +str(CentroUsinagem_client.read_coils(Programa[valor], 1)[0])+str(Programa[valor-1]))
+     
+     CentroUsinagem_client.write_single_coil(5,True) #SELEÇAO DO MODO AUTO
+     CentroUsinagem_client.write_single_coil(9,False) #SELEÇÃO DO PROGRAMA 1
+     CentroUsinagem_client.write_single_coil(10,False) #SELEÇÃO DO PROGRAMA 2
+     CentroUsinagem_client.write_single_coil(11,False) #SELEÇÃO DO PROGRAMA 3
+     CentroUsinagem_client.write_single_coil(5,False) #SELEÇAO DO MODO AUTO
+     #time.sleep(0.5)
+     
+
+#CENTROUSINAGEMCNC_SelecionarPrograma(1)
+
+
+def CENTROUSINAGEMCNC_IniciaUsinagem():
+     CentroUsinagem_client.write_single_coil(5,True) #SELEÇAO DO MODO AUTO
+     CentroUsinagem_client.write_single_coil(6,True) #START DE PROGRAMA
+     time.sleep(0.2)
+     CentroUsinagem_client.write_single_coil(6,False) #START DE PROGRAMA
+     CentroUsinagem_client.write_single_coil(5,False) #SELEÇAO DO MODO AUTO
+     time.sleep(0.2)
+
+
+def VerificarPorta_fechada():
+   estado=True
+   estado =CentroUsinagem_client.read_coils(25,1)[0]
+   while (estado == False):
+      estado =CentroUsinagem_client.read_coils(25,1)[0]
+      time.sleep(0.2)
+      #pass
+   print("Porta Fechada")
+
+def VerificarPorta_Aberta():
+   CentroUsinagem_client = ModbusClient(host="192.168.192.111", port=502, unit_id=1, auto_open=True) #IP do Centro de Usinagem
+   estado=True
+   estado =CentroUsinagem_client.read_coils(24,1)[0]
+   while (estado == False):
+      estado =CentroUsinagem_client.read_coils(24,1)[0]
+      time.sleep(0.2)
+   print("Porta Aberta")
+
+def EstadoDaPorta():
+   CentroUsinagem_client = ModbusClient(host="192.168.192.111", port=502, unit_id=1, auto_open=True) #IP do Centro de Usinagem
+   time.sleep(0.2)
+   estadoPortaInicial =CentroUsinagem_client.read_coils(24,1)[0]
+   time.sleep(0.2)
+   #print(estadoPortaInicial)
+   return estadoPortaInicial
+
+
+def Centro_Abre_Morsa():
+    CentroUsinagem_client = ModbusClient(host="192.168.192.111", port=502, unit_id=1, auto_open=True) #IP do Centro de Usinagem
+    CentroUsinagem_client.write_single_coil(12,False)
+    time.sleep(0.2)
+    CentroUsinagem_client.write_single_coil(13,False)
+    time.sleep(0.2)
+
+    CentroUsinagem_client.write_single_coil(12,True)
+    CentroUsinagem_client.write_single_coil(13,False)
+    time.sleep(0.2)
+    Status_Placa_S1 =CentroUsinagem_client.read_coils(26,1)[0]
+    Status_Placa_S2 =CentroUsinagem_client.read_coils(27,1)[0]
+    print("AGUARDANDO ABRIR MORSA")
+    time.sleep(0.2)
+
+    while(Status_Placa_S1==True or Status_Placa_S2==True):
+        Status_Placa_S1 =CentroUsinagem_client.read_coils(26,1)[0]
+        Status_Placa_S2 =CentroUsinagem_client.read_coils(27,1)[0]
+        CentroUsinagem_client.write_single_coil(12,True)
+        CentroUsinagem_client.write_single_coil(13,False)
+        time.sleep(0.2)
+        #print("Status_Placa_S1" + str(Status_Placa_S1)+ "Status_Placa_S2" + str(Status_Placa_S1))
+    CentroUsinagem_client.write_single_coil(12,False)
+    #time.sleep(0.5)
+    print("MORSA ABERTA")
+
+
+#Centro_Abre_Morsa()
+
+def Centro_Fecha_Morsa():
+    CentroUsinagem_client = ModbusClient(host="192.168.192.111", port=502, unit_id=1, auto_open=True) #IP do Centro de Usinagem
+    CentroUsinagem_client.write_single_coil(12,False)
+    time.sleep(0.2)
+    CentroUsinagem_client.write_single_coil(13,False)
+    time.sleep(0.2)
+
+    CentroUsinagem_client.write_single_coil(13,True)
+    CentroUsinagem_client.write_single_coil(12,False)
+    time.sleep(0.2)
+    Status_Placa_S1 =CentroUsinagem_client.read_coils(26,1)[0]
+    time.sleep(0.2)
+    Status_Placa_S2 =CentroUsinagem_client.read_coils(27,1)[0]
+
+    print("AGUARDANDO FECHAR MORSA")
+    while(Status_Placa_S1==False or Status_Placa_S2==False):
+        Status_Placa_S1 =CentroUsinagem_client.read_coils(26,1)[0]
+        Status_Placa_S2 =CentroUsinagem_client.read_coils(27,1)[0]
+        CentroUsinagem_client.write_single_coil(13,True)
+        CentroUsinagem_client.write_single_coil(12,False)
+       # print("Status_Placa_S1" + str(Status_Placa_S1) + "Status_Placa_S2" + str(Status_Placa_S1))
+        time.sleep(0.2)
+    CentroUsinagem_client.write_single_coil(13,False)
+    #time.sleep(0.5)
+    print("MORSA FECHADA")
+
+#Centro_Fecha_Morsa()
+
+#EstadoDaPorta()
+#VerificarPorta_Aberta()
+#Status_IniciFIM =CentroUsinagem_client.read_coils(24,1)[0]
+#CENTROUSINAGEMCNC_SelecionarPrograma(3)
